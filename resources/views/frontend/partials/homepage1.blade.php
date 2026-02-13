@@ -191,7 +191,7 @@
 				<div class="col-lg-4">
 					<div class="offer-card">
 						<div class="offer-image">
-							<img src="{{ asset('public/media/'.$row->image) }}" alt="{{ $row->title }}" />
+							<img src="{{ asset('public/media/'.$row->image) }}" alt="{{ $row->title }}" style="width: 350px !important;" />
 						</div>
 						<div class="offer-content">
 							<h2>{{ $row->title }}</h2>
