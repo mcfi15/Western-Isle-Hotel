@@ -13,9 +13,9 @@
                     <label class="mr-2 font-weight-bold">Select Date:</label>
                     <input type="date" name="date" value="{{ $date }}" class="form-control mr-2">
                     <button class="btn btn-primary">Generate Report</button>
-                    <a href="{{ route('reports.daily.pdf',['date'=>$date]) }}" class="btn btn-danger">
+                    {{-- <a href="{{ route('reports.daily.pdf',['date'=>$date]) }}" class="btn btn-danger">
                         Export PDF
-                    </a>
+                    </a> --}}
                     {{-- <a href="{{ route('reports.daily.excel',['date'=>$date]) }}" class="btn btn-success">
                         Export Excel
                     </a> --}}
