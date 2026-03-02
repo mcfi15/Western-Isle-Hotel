@@ -499,6 +499,21 @@ Route::prefix('backend')->group(function(){
 	Route::post('/getStatusList', [App\Http\Controllers\Backend\ComboController::class, 'getStatusList'])->name('backend.getStatusList')->middleware(['auth','is_admin']);
 	Route::post('/getCategoryList', [App\Http\Controllers\Backend\ComboController::class, 'getCategoryList'])->name('backend.getCategoryList')->middleware(['auth','is_admin']);
 
+	Route::get('/reports/daily', [App\Http\Controllers\Backend\ReportController::class, 'dailyReport'])->name('reports.daily')
+    ->middleware(['auth','is_admin']);
+	Route::get('/reports/monthly', [App\Http\Controllers\Backend\ReportController::class, 'monthlyReport'])->name('reports.monthly')
+    ->middleware(['auth','is_admin']);
+	Route::get('/reports/yearly', [App\Http\Controllers\Backend\ReportController::class, 'yearlyReport'])->name('reports.yearly')
+    ->middleware(['auth','is_admin']);
+	Route::get('/reports/occupancy', [App\Http\Controllers\Backend\ReportController::class, 'occupancyReport'])->name('reports.occupancy')
+    ->middleware(['auth','is_admin']);
+	Route::get('/reports/outstanding', [App\Http\Controllers\Backend\ReportController::class, 'outstandingReport'])->name('reports.outstanding')
+    ->middleware(['auth','is_admin']);
+	Route::get('/reports/daily/pdf', [App\Http\Controllers\Backend\ReportController::class, 'exportDailyPDF'])->name('reports.daily.pdf')
+    ->middleware(['auth','is_admin']);
+	Route::get('/reports/daily/excel', [App\Http\Controllers\Backend\ReportController::class, 'exportDailyExcel'])->name('reports.daily.excel')
+    ->middleware(['auth','is_admin']);
+
 });
 
 Route::prefix('receptionist')->group(function(){

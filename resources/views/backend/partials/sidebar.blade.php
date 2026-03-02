@@ -4,7 +4,7 @@
 			<img src="{{ $gtext['back_logo'] ? asset('public/media/'.$gtext['back_logo']) : asset('public/backend/images/backend-logo.png') }}" alt="logo">
 		</a>
 	</div>
-	<div class="version">Theme V 1.2.1</div>
+	{{-- <div class="version">Theme V 1.2.1</div> --}}
 	<ul class="left-navbar">
 		@if (Auth::user()->role_id == 1)
 		<li><a href="{{ route('backend.dashboard') }}"><i class="fa fa-tachometer"></i>{{ __('Dashboard') }}</a></li>
@@ -70,6 +70,20 @@
 			</ul>
 		</li>
 		<li><a href="{{ route('backend.media') }}"><i class="fa fa-picture-o"></i>{{ __('Media') }}</a></li>
+
+		{{-- report --}}
+
+		<li class="dropdown"><a class="nav-link has-dropdown" href="#" data-toggle="dropdown"><i class="fa fa-file"></i>{{ __('Report') }}</a>
+			<ul class="dropdown-menu">
+				<li><a href="{{ route('reports.daily') }}">{{ __('Daily Report') }}</a></li>
+				<li><a href="{{ route('reports.monthly') }}">{{ __('Monthly Report') }}</a></li>
+				<li><a href="{{ route('reports.yearly') }}">{{ __('Yearly Report') }}</a></li>
+				<li><a href="{{ route('reports.occupancy') }}">{{ __('Occupancy Report') }}</a></li>
+				<li><a href="{{ route('reports.outstanding') }}">{{ __('Outstanding Report') }}</a></li>
+			</ul>
+		</li>
+		
+
 		<li><a id="active-settings" href="{{ route('backend.general') }}"><i class="fa fa-cogs"></i>{{ __('Settings') }}</a></li>
 		<li><a href="{{ route('backend.users') }}"><i class="fa fa-user-plus"></i>{{ __('Users') }}</a></li>
 		@elseif (Auth::user()->role_id == 3)

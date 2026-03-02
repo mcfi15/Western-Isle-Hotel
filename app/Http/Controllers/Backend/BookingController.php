@@ -405,45 +405,101 @@ class BookingController extends Controller
 	}
 	
 	//update Booking Status
-	public function updateBookingStatus(Request $request){
-		$gtext = gtext();
-		$res = array();
+	// public function updateBookingStatus(Request $request){
+	// 	$gtext = gtext();
+	// 	$res = array();
 
-		$id = $request->input('booking_id');
-		$payment_status_id = $request->input('payment_status_id');
-		$booking_status_id = $request->input('booking_status_id');
-		$is_notify = $request->input('isnotify');
+	// 	$id = $request->input('booking_id');
+	// 	$payment_status_id = $request->input('payment_status_id');
+	// 	$booking_status_id = $request->input('booking_status_id');
+	// 	$is_notify = $request->input('isnotify');
 		
-		if ($is_notify == 'true' || $is_notify == 'on') {
-			$isnotify = 1;
-		}else {
-			$isnotify = 0;
-		}
+	// 	if ($is_notify == 'true' || $is_notify == 'on') {
+	// 		$isnotify = 1;
+	// 	}else {
+	// 		$isnotify = 0;
+	// 	}
 
-		$data = array(
-			'payment_status_id' => $payment_status_id,
-			'booking_status_id' => $booking_status_id
-		);	
+	// 	$data = array(
+	// 		'payment_status_id' => $payment_status_id,
+	// 		'booking_status_id' => $booking_status_id
+	// 	);	
 		
-		$response = Booking_manage::where('id', $id)->update($data);
-		if($response){
-			if($isnotify == 1){
-				if($gtext['ismail'] == 1){
-					BookingNotify($id, 'booking');
-				}
-			}
+	// 	$response = Booking_manage::where('id', $id)->update($data);
+	// 	if($response){
+	// 		if($isnotify == 1){
+	// 			if($gtext['ismail'] == 1){
+	// 				BookingNotify($id, 'booking');
+	// 			}
+	// 		}
 			
-			self::ChangeBookingStatus($id, $booking_status_id);
+	// 		self::ChangeBookingStatus($id, $booking_status_id);
 			
-			$res['msgType'] = 'success';
-			$res['msg'] = __('Updated Successfully');
-		}else{
-			$res['msgType'] = 'error';
-			$res['msg'] = __('Data update failed');
-		}
+	// 		$res['msgType'] = 'success';
+	// 		$res['msg'] = __('Updated Successfully');
+	// 	}else{
+	// 		$res['msgType'] = 'error';
+	// 		$res['msg'] = __('Data update failed');
+	// 	}
 		
-		return response()->json($res);
-	}
+	// 	return response()->json($res);
+	// }
+
+public function updateBookingStatus(Request $request)
+{
+    $gtext = gtext();
+    $res = [];
+
+    $id = $request->input('booking_id');
+    $payment_status_id = $request->input('payment_status_id');
+    $booking_status_id = $request->input('booking_status_id');
+    $is_notify = $request->input('isnotify');
+
+    // Determine if notification should be sent
+    $isnotify = ($is_notify === 'true' || $is_notify === 'on') ? 1 : 0;
+
+    // Get the currently logged-in user
+    $processed_by = auth()->id(); // assumes Laravel auth
+
+    // Start building the update data
+    $data = [
+        'payment_status_id' => $payment_status_id,
+        'booking_status_id' => $booking_status_id,
+        'processed_by' => $processed_by,
+    ];
+
+    // If payment is marked completed
+    if ($payment_status_id == 1) {
+        $booking = Booking_manage::find($id);
+        if ($booking) {
+            $data['payment_date'] = now();             // set current date
+            $data['paid_amount'] = $booking->total_amount; // mark full amount as paid
+        }
+    }
+
+    // Update booking
+    $response = Booking_manage::where('id', $id)->update($data);
+
+    if ($response) {
+
+        // Send notification if enabled
+        if ($isnotify == 1 && $gtext['ismail'] == 1) {
+            BookingNotify($id, 'booking');
+        }
+
+        // Update related booking status
+        self::ChangeBookingStatus($id, $booking_status_id);
+
+        $res['msgType'] = 'success';
+        $res['msg'] = __('Updated Successfully');
+
+    } else {
+        $res['msgType'] = 'error';
+        $res['msg'] = __('Data update failed');
+    }
+
+    return response()->json($res);
+}
 	
     //Payment Booking Status
     public function getPaymentBookingStatusData(Request $request) {
@@ -739,3 +795,4 @@ class BookingController extends Controller
 		return response()->json($res);
     }	
 }
+ 

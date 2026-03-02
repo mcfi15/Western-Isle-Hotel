@@ -16,6 +16,7 @@ class Booking_manage extends Model
 		'transaction_no',
 		'roomtype_id',
 		'customer_id',
+		'payment_date',
 		'payment_method_id',
 		'payment_status_id',
 		'booking_status_id',
