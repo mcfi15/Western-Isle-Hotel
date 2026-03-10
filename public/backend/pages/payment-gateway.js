@@ -41,10 +41,14 @@ $(document).on('click', '#submit-form-paystack', function (e) {
         $("#cod_formId").submit();
     });
 	
-	$("#submit-form-bank").on("click", function () {
-        $("#bank_formId").submit();
-    });
+	// $("#submit-form-bank").on("click", function () {
+    //     $("#bank_formId").submit();
+    // });
 	
+    $(document).on('click', '#submit-form-bank', function (e) {
+    e.preventDefault();
+    $('#bank_formId').submit();
+});
 });
 
 function onListPanel() {
@@ -299,43 +303,70 @@ function onConfirmWhenAddEditForCOD() {
 	});
 }
 
-jQuery('#bank_formId').parsley({
-    listeners: {
-        onFieldValidate: function (elem) {
-            if (!$(elem).is(':visible')) {
-                return true;
-            }
-            else {
-                showPerslyError();
-                return false;
-            }
-        },
-        onFormSubmit: function (isFormValid, event) {
-            if (isFormValid) {
-                onConfirmWhenAddEditForBank();
-                return false;
-            }
-        }
-    }
+$('#bank_formId').parsley().on('form:submit', function () {
+    onConfirmWhenAddEditForBank();
+    return false;
 });
 
 function onConfirmWhenAddEditForBank() {
-
     $.ajax({
-		type : 'POST',
-		url: base_url + '/backend/BankSettingsUpdate',
-		data: $('#bank_formId').serialize(),
-		success: function (response) {			
-			var msgType = response.msgType;
-			var msg = response.msg;
-
-			if (msgType == "success") {
-				onSuccessMsg(msg);
-			} else {
-				onErrorMsg(msg);
-			}
-		}
-	});
+        type: 'POST',
+        url: "{{ route('backend.BankSettingsUpdate') }}",
+        data: $('#bank_formId').serialize(),
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function (response) {
+            if (response.msgType === 'success') {
+                onSuccessMsg(response.msg);
+            } else {
+                onErrorMsg(response.msg);
+            }
+        },
+        error: function (xhr) {
+            console.log(xhr.responseText);
+            alert('AJAX error – check console');
+        }
+    });
 }
+
+// jQuery('#bank_formId').parsley({
+//     listeners: {
+//         onFieldValidate: function (elem) {
+//             if (!$(elem).is(':visible')) {
+//                 return true;
+//             }
+//             else {
+//                 showPerslyError();
+//                 return false;
+//             }
+//         },
+//         onFormSubmit: function (isFormValid, event) {
+//             if (isFormValid) {
+//                 onConfirmWhenAddEditForBank();
+//                 return false;
+//             }
+//         }
+//     }
+// });
+
+// function onConfirmWhenAddEditForBank() {
+
+//     $.ajax({
+// 		type : 'POST',
+// 		url: base_url + '/backend/BankSettingsUpdate',
+// 		data: $('#bank_formId').serialize(),
+// 		success: function (response) {			
+// 			var msgType = response.msgType;
+// 			var msg = response.msg;
+
+// 			if (msgType == "success") {
+// 				onSuccessMsg(msg);
+// 			} else {
+// 				onErrorMsg(msg);
+// 			}
+// 		}
+// 	});
+// }
 
 

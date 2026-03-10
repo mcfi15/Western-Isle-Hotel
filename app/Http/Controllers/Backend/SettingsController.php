@@ -1334,109 +1334,112 @@ public function PaystackSettingsUpdate(Request $request)
     }
 		
 	//Save data for COD
-    public function CODSettingsUpdate(Request $request){
-		$res = array();
-		
-		$description = $request->input('description');
-		$is_enable = $request->input('isenable_cod');
-		
-		if ($is_enable == 'true' || $is_enable == 'on') {
-			$isenable = 1;
-		}else {
-			$isenable = 0;
-		}
-		
-		$option_value = array(
-			'description' => $description,
-			'isenable' => $isenable
-		);
-		
-		$data = array(
-			'option_name' => 'cash_on_delivery',
-			'option_value' => json_encode($option_value)
-		);
+    public function CODSettingsUpdate(Request $request)
+{
+    $description = $request->description;
+    $isenable = $request->has('isenable_cod') ? 1 : 0;
 
-		$gData = Tp_option::where('option_name', 'cash_on_delivery')->get();
-		$id = '';
-		foreach ($gData as $row){
-			$id = $row['id'];
-		}
-		
-		if($id == ''){
-			$response = Tp_option::create($data);
-			if($response){
-				$res['msgType'] = 'success';
-				$res['msg'] = __('Saved Successfully');
-			}else{
-				$res['msgType'] = 'error';
-				$res['msg'] = __('Data insert failed');
-			}
-		}else{
-			$response = Tp_option::where('id', $id)->update($data);
-			if($response){
-				$res['msgType'] = 'success';
-				$res['msg'] = __('Updated Successfully');
-			}else{
-				$res['msgType'] = 'error';
-				$res['msg'] = __('Data update failed');
-			}
-		}
+    $option_value = [
+        'description' => $description,
+        'isenable' => $isenable
+    ];
 
-		return response()->json($res);
+    $data = [
+        'option_name' => 'cash_on_delivery',
+        'option_value' => json_encode($option_value)
+    ];
+
+    $record = Tp_option::where('option_name', 'cash_on_delivery')->first();
+
+    if(!$record){
+        Tp_option::create($data);
+        return back()->with('success','Saved Successfully');
+    }else{
+        $record->update($data);
+        return back()->with('success','Updated Successfully');
     }
+}
 	
 	//Save data for Bank Transfer
-    public function BankSettingsUpdate(Request $request){
-		$res = array();
+    // public function BankSettingsUpdate(Request $request){
+	// 	$res = array();
 		
-		$description = $request->input('description');
-		$is_enable = $request->input('isenable_bank');
+	// 	$description = $request->input('description');
+	// 	$is_enable = $request->input('isenable_bank');
 		
-		if ($is_enable == 'true' || $is_enable == 'on') {
-			$isenable = 1;
-		}else {
-			$isenable = 0;
-		}
+	// 	if ($is_enable == 'true' || $is_enable == 'on') {
+	// 		$isenable = 1;
+	// 	}else {
+	// 		$isenable = 0;
+	// 	}
 		
-		$option_value = array(
-			'description' => $description,
-			'isenable' => $isenable
-		);
+	// 	$option_value = array(
+	// 		'description' => $description,
+	// 		'isenable' => $isenable
+	// 	);
 		
-		$data = array(
-			'option_name' => 'bank_transfer',
-			'option_value' => json_encode($option_value)
-		);
+	// 	$data = array(
+	// 		'option_name' => 'bank_transfer',
+	// 		'option_value' => json_encode($option_value)
+	// 	);
 
-		$gData = Tp_option::where('option_name', 'bank_transfer')->get();
-		$id = '';
-		foreach ($gData as $row){
-			$id = $row['id'];
-		}
+	// 	$gData = Tp_option::where('option_name', 'bank_transfer')->get();
+	// 	$id = '';
+	// 	foreach ($gData as $row){
+	// 		$id = $row['id'];
+	// 	}
 		
-		if($id == ''){
-			$response = Tp_option::create($data);
-			if($response){
-				$res['msgType'] = 'success';
-				$res['msg'] = __('Saved Successfully');
-			}else{
-				$res['msgType'] = 'error';
-				$res['msg'] = __('Data insert failed');
-			}
-		}else{
-			$response = Tp_option::where('id', $id)->update($data);
-			if($response){
-				$res['msgType'] = 'success';
-				$res['msg'] = __('Updated Successfully');
-			}else{
-				$res['msgType'] = 'error';
-				$res['msg'] = __('Data update failed');
-			}
-		}
+	// 	if($id == ''){
+	// 		$response = Tp_option::create($data);
+	// 		if($response){
+	// 			$res['msgType'] = 'success';
+	// 			$res['msg'] = __('Saved Successfully');
+	// 		}else{
+	// 			$res['msgType'] = 'error';
+	// 			$res['msg'] = __('Data insert failed');
+	// 		}
+	// 	}else{
+	// 		$response = Tp_option::where('id', $id)->update($data);
+	// 		if($response){
+	// 			$res['msgType'] = 'success';
+	// 			$res['msg'] = __('Updated Successfully');
+	// 		}else{
+	// 			$res['msgType'] = 'error';
+	// 			$res['msg'] = __('Data update failed');
+	// 		}
+	// 	}
 
-		return response()->json($res);
-    }
+	// 	return response()->json($res);
+    // }
 	
+
+	public function BankSettingsUpdate(Request $request)
+{
+    $description = $request->description;
+    $isenable = $request->has('isenable_bank') ? 1 : 0;
+
+    $option_value = [
+        'description' => $description,
+        'isenable' => $isenable
+    ];
+
+    $data = [
+        'option_name' => 'bank_transfer',
+        'option_value' => json_encode($option_value)
+    ];
+
+    $record = Tp_option::where('option_name', 'bank_transfer')->first();
+
+    if(!$record){
+        Tp_option::create($data);
+        return back()->with('success','Saved Successfully');
+    }else{
+        $record->update($data);
+        return back()->with('success','Updated Successfully');
+    }
+}
+
+
     //load Media Settings page
     public function loadMediaSettingsPage(){
 		
