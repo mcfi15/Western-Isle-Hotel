@@ -50,9 +50,12 @@
                             </td>
                         </tr>
                         @endforelse
-                    </tbody>
-                </table>
-            </div>
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer">
+            {{ $list->links() }}
+        </div>
 
         </div>
 

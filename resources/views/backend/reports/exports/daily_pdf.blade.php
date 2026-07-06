@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Daily Cash Report</title>
+    <title>Daily Report</title>
 
     <style>
         body{
@@ -32,6 +32,11 @@
             text-align:center;
             margin-top:10px;
             margin-bottom:10px;
+        }
+
+        .section-title{
+            margin-top:20px;
+            margin-bottom:8px;
         }
 
         table{
@@ -77,7 +82,6 @@
 
 @php $gtext = gtext(); @endphp
 
-<!-- ================= HEADER ================= -->
 <div class="header">
     <table>
         <tr>
@@ -97,14 +101,14 @@
 
 <hr>
 
-<!-- ================= TITLE ================= -->
 <div class="title">
-    <h2>DAILY CASH REPORT</h2>
+    <h2>DAILY REPORT</h2>
     <strong>Date:</strong> {{ $date }} <br>
     <small>Generated on: {{ date('d M Y h:i A') }}</small>
 </div>
 
-<!-- ================= TABLE ================= -->
+<!-- CASH FLOW SECTION -->
+<h3 class="section-title">Cash Flow — ₦{{ number_format($totalCash,2) }}</h3>
 <table>
     <thead>
         <tr>
@@ -143,7 +147,46 @@
     </tfoot>
 </table>
 
-<!-- ================= FOOTER ================= -->
+<!-- STAY / OCCUPANCY SECTION -->
+<h3 class="section-title">Stay / Occupancy — ₦{{ number_format($totalStayRevenue,2) }}</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Booking No</th>
+            <th>Guest</th>
+            <th>Room Type</th>
+            <th>Check-in</th>
+            <th>Check-out</th>
+            <th>Revenue</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @forelse($stayList as $row)
+        <tr>
+            <td>{{ $row->booking_no }}</td>
+            <td>{{ $row->name }}</td>
+            <td>{{ $row->roomtype }}</td>
+            <td>{{ $row->in_date }}</td>
+            <td>{{ $row->out_date }}</td>
+            <td class="text-right">{{ number_format($row->total_amount,2) }}</td>
+        </tr>
+        @empty
+        <tr>
+            <td colspan="6" style="text-align:center">No check-ins for this date</td>
+        </tr>
+        @endforelse
+    </tbody>
+
+    <tfoot>
+        <tr>
+            <th colspan="2">TOTAL</th>
+            <th class="text-right">₦{{ number_format($totalStayRevenue,2) }}</th>
+            <th colspan="3"></th>
+        </tr>
+    </tfoot>
+</table>
+
 <div class="footer">
 
     <div class="signature">

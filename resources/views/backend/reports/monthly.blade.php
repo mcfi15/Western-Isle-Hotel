@@ -77,6 +77,9 @@
                 </tbody>
             </table>
         </div>
+        <div class="card-footer">
+            {{ $list->links() }}
+        </div>
         </div>
 
         </div>

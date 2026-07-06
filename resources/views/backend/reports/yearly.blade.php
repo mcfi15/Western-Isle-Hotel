@@ -10,7 +10,11 @@
                 <div class="card-body">
                     <form method="GET" class="form-inline">
                         <label class="mr-2 font-weight-bold">Year:</label>
-                        <input type="number" name="year" value="{{ $year }}" class="form-control mr-2">
+                        <select name="year" class="form-control mr-2">
+                            @for($y = date('Y'); $y >= date('Y') - 10; $y--)
+                                <option value="{{ $y }}" {{ $y == $year ? 'selected' : '' }}>{{ $y }}</option>
+                            @endfor
+                        </select>
                         <button class="btn btn-primary">Generate</button>
                     </form>
                 </div>

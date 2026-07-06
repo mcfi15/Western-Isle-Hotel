@@ -86,8 +86,8 @@ class ReportController extends Controller
         $totalStayRevenue = $stayList->sum('total_amount');
 
 
-        // OVERALL TOTAL REVENUE
-        $grandTotal = DB::table('booking_manages')
+        // OVERALL TOTAL REVENUE (all-time)
+        $totalRevenueToDate = DB::table('booking_manages')
             ->where('payment_status_id', 1)
             ->sum('paid_amount');
 
@@ -98,7 +98,7 @@ class ReportController extends Controller
             'totalCash',
             'stayList',
             'totalStayRevenue',
-            'grandTotal',
+            'totalRevenueToDate',
             // 'paymentMethods'
         ));
     }
@@ -134,7 +134,7 @@ class ReportController extends Controller
     ->whereYear('booking_manages.created_at', $year)
 
     ->orderBy('booking_manages.created_at','desc')
-    ->get();
+    ->paginate(50);
 
         return view('backend.reports.monthly', compact(
             'month','year','cash','revenue','bookings','list'
@@ -205,13 +205,16 @@ class ReportController extends Controller
 
     public function outstandingReport()
     {
+        $totalDue = DB::table('booking_manages')
+            ->where('payment_status_id','!=',1)
+            ->where('due_amount','>',0)
+            ->sum('due_amount');
+
         $list = DB::table('booking_manages')
             ->where('payment_status_id','!=',1)
             ->where('due_amount','>',0)
             ->orderBy('in_date','asc')
-            ->get();
-
-        $totalDue = $list->sum('due_amount');
+            ->paginate(50);
 
         return view('backend.reports.outstanding', compact('list','totalDue'));
     }
@@ -260,11 +263,25 @@ public function exportDailyPDF(Request $request)
 
     $totalCash = $cashList->sum('paid_amount');
 
+    $stayList = DB::table('booking_manages')
+        ->join('users', 'booking_manages.processed_by', '=', 'users.id')
+        ->leftJoin('rooms', 'booking_manages.roomtype_id', '=', 'rooms.id')
+        ->select(
+            'booking_manages.*',
+            'users.name as staff_name',
+            'rooms.title as roomtype'
+        )
+        ->whereDate('in_date', $date)
+        ->where('booking_status_id', 2)
+        ->get();
+
+    $totalStayRevenue = $stayList->sum('total_amount');
+
     $pdf = Pdf::loadView('backend.reports.exports.daily_pdf', compact(
-        'cashList','totalCash','date'
+        'cashList','totalCash','stayList','totalStayRevenue','date'
     ));
 
-    return $pdf->download("Daily_Cash_Report_$date.pdf");
+    return $pdf->download("Daily_Report_$date.pdf");
 }
 
 public function exportDailyExcel(Request $request)

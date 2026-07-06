@@ -13,12 +13,12 @@
                     <label class="mr-2 font-weight-bold">Select Date:</label>
                     <input type="date" name="date" value="{{ $date }}" class="form-control mr-2">
                     <button class="btn btn-primary">Generate Report</button>
-                    {{-- <a href="{{ route('reports.daily.pdf',['date'=>$date]) }}" class="btn btn-danger">
+                    <a href="{{ route('reports.daily.pdf',['date'=>$date]) }}" class="btn btn-danger">
                         Export PDF
-                    </a> --}}
-                    {{-- <a href="{{ route('reports.daily.excel',['date'=>$date]) }}" class="btn btn-success">
+                    </a>
+                    <a href="{{ route('reports.daily.excel',['date'=>$date]) }}" class="btn btn-success">
                         Export Excel
-                    </a> --}}
+                    </a>
                 </form>
             </div>
         </div>
@@ -47,7 +47,7 @@
                 <div class="card text-white bg-dark shadow-sm">
                     <div class="card-body">
                         <h6 class="text-white">📊 Total Revenue To Date</h6>
-                        <h4 class="text-white">₦{{ number_format($grandTotal,2) }}</h4>
+                        <h4 class="text-white">₦{{ number_format($totalRevenueToDate,2) }}</h4>
                     </div>
                 </div>
             </div>
