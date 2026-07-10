@@ -12,6 +12,7 @@
 				<th class="text-center" style="width:9%">{{ __('Payment Method') }}</th>
 				<th class="text-center" style="width:9%">{{ __('Payment Status') }}</th>
 				<th class="text-center" style="width:9%">{{ __('Booking Status') }}</th>
+				<th class="text-center" style="width:7%">{{ __('Proof') }}</th>
 				<th class="text-center" style="width:7%">{{ __('Action') }}</th>
 			</tr>
 		</thead>
@@ -31,6 +32,15 @@
 				<td class="text-center"><span class="status_btn ostatus_{{ $row->booking_status_id }}">{{ $row->bstatus_name }}</span></td>
 				
 				<td class="text-center">
+					@if($row->payment_proof)
+					<a href="{{ asset('public/media/'.$row->payment_proof) }}" target="_blank">
+						<img src="{{ asset('public/media/'.$row->payment_proof) }}" alt="Proof" style="width:40px;height:40px;object-fit:cover;border:1px solid #ddd;border-radius:4px;">
+					</a>
+					@else
+					<span class="text-muted">—</span>
+					@endif
+				</td>
+				<td class="text-center">
 					<div class="btn-group action-group">
 						<a class="action-btn" href="javascript:void(0);" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-v"></i></a>
 						<div class="dropdown-menu dropdown-menu-right">
@@ -44,7 +54,7 @@
 			@endforeach
 			@else
 			<tr>
-				<td class="text-center" colspan="11">{{ __('No data available') }}</td>
+				<td class="text-center" colspan="12">{{ __('No data available') }}</td>
 			</tr>
 			@endif
 		</tbody>

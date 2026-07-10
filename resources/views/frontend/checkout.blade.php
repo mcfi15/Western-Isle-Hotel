@@ -241,16 +241,6 @@
 								</div>
 								@endif
 								
-								@if($gtext['cod_isenable'] == 1)
-								<div class="payment_card">
-									<div class="checkboxlist">
-										<label class="checkbox-title">
-											<input id="payment_method_cod" name="payment_method" type="radio" value="1"><img src="{{ asset('public/frontend/images/cash_on_delivery.png') }}" alt="Cash on Delivery" />
-										</label>
-									</div>
-									<p id="pay_cod" class="hideclass">{{ $gtext['cod_description'] }}</p>
-								</div>
-								@endif
 								
 								@if($gtext['bank_isenable'] == 1)
 								<div class="payment_card">
