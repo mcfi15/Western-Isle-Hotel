@@ -126,6 +126,22 @@
 										<td colspan="5" class="text-right border-none"><strong>{{ __('Discount') }}: </strong></td>
 										<td class="text-right border-none"><strong>{{ $discount }}</strong></td>
 									</tr>
+									@if(Auth::user()->role_id == 1)
+									<tr id="manual_discount_row">
+										<td colspan="5" class="text-right border-none">
+											<strong>{{ __('Manual Discount') }}: </strong>
+											<input type="number" name="manual_discount" id="manual_discount" 
+												   value="{{ $mdata->discount ?? 0 }}" 
+												   step="0.01" min="0"
+												   style="width:120px;text-align:right;" 
+												   class="form-control d-inline">
+											<button type="button" id="apply_discount_btn" class="btn btn-sm btn-primary ml-2">
+												{{ __('Apply') }}
+											</button>
+										</td>
+										<td class="text-right border-none"></td>
+									</tr>
+									@endif
 									<tr>
 										<td colspan="5" class="text-right border-none"><strong>{{ __('Grand Total') }}: </strong></td>
 										<td class="text-right border-none"><strong>{{ $total_amount }}</strong></td>
@@ -283,6 +299,15 @@
 						@if ($mdata->comments != '')
 						<p><strong>{{ __('Note') }}</strong>: {{ $mdata->comments }}</p>
 						@endif
+						
+						@if ($mdata->payment_proof != '')
+						<p>
+							<strong>{{ __('Payment Proof') }}:</strong><br>
+							<a href="{{ asset('public/media/'.$mdata->payment_proof) }}" target="_blank">
+								<img src="{{ asset('public/media/'.$mdata->payment_proof) }}" alt="Payment Proof" style="max-width:200px;max-height:200px;border:1px solid #ddd;padding:5px;">
+							</a>
+						</p>
+						@endif
 					</div>
 				</div>
 			</div>
@@ -355,4 +380,28 @@ var TEXT = [];
 	TEXT['Room'] = "{{ __('Room') }}";
 </script>
 <script src="{{asset('public/backend/pages/booking.js')}}"></script>
+<script>
+$(document).ready(function() {
+    $('#apply_discount_btn').on('click', function() {
+        var discount = $('#manual_discount').val();
+        var booking_id = $('#booking_id').val();
+        $.ajax({
+            type: 'POST',
+            url: base_url + '/backend/booking/update-discount',
+            data: {
+                booking_id: booking_id,
+                manual_discount: discount
+            },
+            success: function(response) {
+                if (response.msgType == 'success') {
+                    onSuccessMsg(response.msg);
+                    setTimeout(function() { location.reload(); }, 1000);
+                } else {
+                    onErrorMsg(response.msg);
+                }
+            }
+        });
+    });
+});
+</script>
 @endpush

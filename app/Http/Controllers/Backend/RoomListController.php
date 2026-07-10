@@ -19,7 +19,7 @@ class RoomListController extends Controller
 			->join('rooms', 'room_manages.roomtype_id', '=', 'rooms.id')
 			->leftjoin('room_assigns', 'room_manages.id', '=', 'room_assigns.room_id')
 			->leftjoin('booking_manages', 'room_assigns.booking_id', '=', 'booking_manages.id')
-			->select('room_manages.*', 'tp_status.status', 'rooms.title', 'booking_manages.booking_no', 
+			->select('room_manages.*', 'tp_status.status', 'rooms.title', 'rooms.price', 'rooms.old_price', 'rooms.is_discount', 'booking_manages.booking_no', 
 			'booking_manages.name', 'booking_manages.phone')
 			->orderBy('rooms.title','asc')
 			->orderBy('room_manages.room_no','asc')
@@ -42,7 +42,7 @@ class RoomListController extends Controller
 					->join('rooms', 'room_manages.roomtype_id', '=', 'rooms.id')
 					->leftjoin('room_assigns', 'room_manages.id', '=', 'room_assigns.room_id')
 					->leftjoin('booking_manages', 'room_assigns.booking_id', '=', 'booking_manages.id')
-					->select('room_manages.*', 'tp_status.status', 'rooms.title', 'booking_manages.booking_no', 
+					->select('room_manages.*', 'tp_status.status', 'rooms.title', 'rooms.price', 'rooms.old_price', 'rooms.is_discount', 'booking_manages.booking_no', 
 					'booking_manages.name', 'booking_manages.phone')
 					->where(function ($query) use ($search){
 						$query->where('room_manages.room_no', 'like', '%'.$search.'%')
@@ -65,7 +65,7 @@ class RoomListController extends Controller
 					->join('rooms', 'room_manages.roomtype_id', '=', 'rooms.id')
 					->leftjoin('room_assigns', 'room_manages.id', '=', 'room_assigns.room_id')
 					->leftjoin('booking_manages', 'room_assigns.booking_id', '=', 'booking_manages.id')
-					->select('room_manages.*', 'tp_status.status', 'rooms.title', 'booking_manages.booking_no', 
+					->select('room_manages.*', 'tp_status.status', 'rooms.title', 'rooms.price', 'rooms.old_price', 'rooms.is_discount', 'booking_manages.booking_no', 
 					'booking_manages.name', 'booking_manages.phone')
 					->whereRaw("room_manages.roomtype_id = '".$roomtype_id."' OR '".$roomtype_id."' = '0'")
 					->orderBy('rooms.title','asc')

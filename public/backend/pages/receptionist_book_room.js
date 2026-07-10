@@ -116,11 +116,17 @@ function onConfirmBookRoomRequest() {
 
 function onCheckRoomCount() {
 	var roomtype_id = $("#roomtype").val();
+	var checkin_date = $("#checkin_date").val();
+	var checkout_date = $("#checkout_date").val();
 	
     $.ajax({
 		type : 'POST',
 		url: base_url + '/receptionist/CheckRoomCount',
-		data: "roomtype_id="+roomtype_id,
+		data: {
+			roomtype_id: roomtype_id,
+			in_date: checkin_date,
+			out_date: checkout_date
+		},
 		success: function (response) {			
 			var total_room = response.total_room;
 			maxRoom = total_room;

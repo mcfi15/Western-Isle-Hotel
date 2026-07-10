@@ -73,11 +73,22 @@
 								</div>
 								<div class="col-lg-3">
 									<div class="form-group">
-										<label for="email">{{ __('Email Address') }}<span class="red">*</span></label>
-										<input type="email" name="email" id="email" class="form-control parsley-validated" data-required="true">
+										<label for="email">{{ __('Email Address') }}</label>
+										<input type="email" name="email" id="email" class="form-control">
 										<span class="text-danger error-text email_error"></span>
 									</div>
-								</div>	
+								</div>
+								<div class="col-lg-3">
+									<div class="form-group">
+										<label for="payment_method_id">{{ __('Payment Method') }}<span class="red">*</span></label>
+										<select name="payment_method_id" id="payment_method_id" class="chosen-select form-control">
+											@foreach(DB::table('payment_method')->get() as $pm)
+											<option value="{{ $pm->id }}">{{ $pm->method_name }}</option>
+											@endforeach
+										</select>
+										<span class="text-danger error-text payment_method_id_error"></span>
+									</div>
+								</div>
 								<div class="col-lg-3">
 									<div class="form-group">
 										<label for="phone">{{ __('Phone') }}<span class="red">*</span></label>

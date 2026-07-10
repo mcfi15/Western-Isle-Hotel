@@ -40,7 +40,7 @@ class CheckoutFrontController extends Controller
     {
 		$country_list = Country::where('is_publish', '=', 1)->orderBy('country_name', 'ASC')->get();
 		$rtdata = Room::where('id', $id)->where('is_publish', '=', 1)->first();
-		$total_room = Room_manage::where('roomtype_id', '=', $id)->where('book_status', '=', 2)->where('is_publish', '=', 1)->count();
+		$total_room = Room_manage::where('roomtype_id', '=', $id)->where('is_publish', '=', 1)->count();
 		
         return view('frontend.checkout', compact('country_list', 'rtdata', 'total_room'));
     }
@@ -179,6 +179,15 @@ class CheckoutFrontController extends Controller
 		$paid_amount = 0;
 		$due_amount = $total_amount;
 
+		// Handle payment proof upload
+		$payment_proof = null;
+		if ($request->hasFile('payment_proof')) {
+			$file = $request->file('payment_proof');
+			$filename = 'proof_'.time().'_'.uniqid().'.'.$file->getClientOriginalExtension();
+			$file->move(public_path('public/media/payment_proofs'), $filename);
+			$payment_proof = 'payment_proofs/'.$filename;
+		}
+
 		$data = array(
 			'booking_no' => $booking_no,
 			'roomtype_id' => $roomtype_id,
@@ -204,7 +213,8 @@ class CheckoutFrontController extends Controller
 			'zip_code' => $request->input('zip_code'),
 			'city' => $request->input('city'),
 			'address' => $request->input('address'),
-			'comments' => $request->input('comments')
+			'comments' => $request->input('comments'),
+			'payment_proof' => $payment_proof
 		);
 
 		$order_master_id = Booking_manage::create($data)->id;

@@ -514,6 +514,9 @@ Route::prefix('backend')->group(function(){
 	Route::get('/reports/daily/excel', [App\Http\Controllers\Backend\ReportController::class, 'exportDailyExcel'])->name('reports.daily.excel')
     ->middleware(['auth','is_admin']);
 
+	Route::post('/booking/update-discount', [App\Http\Controllers\Backend\BookingController::class, 'updateDiscount'])->name('backend.booking.updateDiscount')
+    ->middleware(['auth','is_admin']);
+
 });
 
 Route::prefix('receptionist')->group(function(){

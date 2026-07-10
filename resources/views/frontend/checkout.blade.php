@@ -266,6 +266,16 @@
 						</div>
 						<div class="row">
 							<div class="col-md-12">
+								<h5 class="mt10">{{ __('Payment Proof') }}</h5>
+								<p class="text-muted">{{ __('Upload payment proof if paying via bank transfer or other manual method') }}</p>
+								<div class="mb-3">
+									<input type="file" name="payment_proof" id="payment_proof" class="form-control" accept="image/*,.pdf">
+									<span class="text-danger error-text payment_proof_error"></span>
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-md-12">
 								<div class="mb-3 mt10">
 									<textarea name="comments" class="form-control" placeholder="{{ __('Note') }}" rows="2"></textarea>
 								</div>

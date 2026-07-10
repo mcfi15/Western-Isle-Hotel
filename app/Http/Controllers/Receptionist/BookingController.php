@@ -30,6 +30,7 @@ class BookingController extends Controller
 			->join('booking_status', 'booking_manages.booking_status_id', '=', 'booking_status.id')
 			->select('booking_manages.*', 'rooms.title', 'rooms.old_price', 'rooms.is_discount', 
 			 'payment_method.method_name', 'payment_status.pstatus_name', 'booking_status.bstatus_name')
+			->where('booking_manages.processed_by', auth()->id())
 			->orderBy('booking_manages.id', 'desc')
 			->paginate(20);
 		
@@ -63,6 +64,7 @@ class BookingController extends Controller
 							->orWhere('booking_manages.total_room', 'like', '%'.$search.'%')
 							->orWhere('booking_manages.address', 'like', '%'.$search.'%');
 					})
+					->where('booking_manages.processed_by', auth()->id())
 					->orderBy('booking_manages.id', 'desc')
 					->paginate(20);
 			}else{
@@ -76,6 +78,7 @@ class BookingController extends Controller
 						->select('booking_manages.*', 'rooms.title', 'rooms.old_price', 'rooms.is_discount', 
 						 'payment_method.method_name', 'payment_status.pstatus_name', 'booking_status.bstatus_name')
 						->whereBetween('booking_manages.created_at', [$start_date, $end_date])
+						->where('booking_manages.processed_by', auth()->id())
 						->orderBy('booking_manages.id', 'desc')
 						->paginate(20);
 				}else{
@@ -87,6 +90,7 @@ class BookingController extends Controller
 							->join('booking_status', 'booking_manages.booking_status_id', '=', 'booking_status.id')
 							->select('booking_manages.*', 'rooms.title', 'rooms.old_price', 'rooms.is_discount', 
 							 'payment_method.method_name', 'payment_status.pstatus_name', 'booking_status.bstatus_name')
+							->where('booking_manages.processed_by', auth()->id())
 							->orderBy('booking_manages.id', 'desc')
 							->paginate(20);
 					}else{
@@ -98,6 +102,7 @@ class BookingController extends Controller
 							->select('booking_manages.*', 'rooms.title', 'rooms.old_price', 'rooms.is_discount', 
 							 'payment_method.method_name', 'payment_status.pstatus_name', 'booking_status.bstatus_name')
 							->where('booking_manages.booking_status_id', '=', $status)
+							->where('booking_manages.processed_by', auth()->id())
 							->orderBy('booking_manages.id', 'desc')
 							->paginate(20);
 					}
@@ -258,13 +263,11 @@ class BookingController extends Controller
 			$idsArray[] = $row->room_id;
 		}
 
-		$room_list = Room_manage::where('roomtype_id', '=', $roomtype_id)
-			->where('book_status', '=', 2)
-			->where('is_publish', '=', 1)
+		$room_list = getAvailableRooms($roomtype_id, $mdata->in_date, $mdata->out_date, $id)
 			->whereNotIn('id', $idsArray)
 			->paginate(20);
 		
-		$total_room = Room_manage::where('roomtype_id', '=', $roomtype_id)->where('book_status', '=', 2)->where('is_publish', '=', 1)->count();
+		$total_room = getAvailableRooms($roomtype_id, $mdata->in_date, $mdata->out_date, $id)->count();
 		
         return view('receptionist.booking', compact('page_type', 'payment_status_list', 'booking_status_list', 'mdata', 'room_list', 'total_room'));		
 	}
@@ -282,25 +285,17 @@ class BookingController extends Controller
 			$idsArray[] = $row->room_id;
 		}
 
+		$bookingData = Booking_manage::find($booking_id);
+		$in_date = $bookingData ? $bookingData->in_date : null;
+		$out_date = $bookingData ? $bookingData->out_date : null;
+
 		if($request->ajax()){
 
-			if($search != ''){
-
-				$room_list = Room_manage::where('roomtype_id', $roomtype_id)
-					->where(function ($query) use ($search){
-						$query->where('room_no', 'like', '%'.$search.'%');
-					})
-					->where('book_status', '=', 2)
-					->where('is_publish', '=', 1)
-					->whereNotIn('id', $idsArray)
-					->paginate(20);
-			}else{
-				$room_list = Room_manage::where('roomtype_id', $roomtype_id)
-					->where('book_status', '=', 2)
-					->where('is_publish', '=', 1)
-					->whereNotIn('id', $idsArray)
-					->paginate(20);
-			}
+			$room_list = getAvailableRooms($roomtype_id, $in_date, $out_date, $booking_id)
+				->where(function ($q) use ($search) { if ($search) $q->where('rm.room_no', 'like', '%'.$search.'%'); })
+				->whereNotIn('rm.id', $idsArray)
+				->select('rm.*')
+				->paginate(20);
 
 			return view('receptionist.partials.room_list_for_assign_room', compact('room_list'))->render();
 		}
@@ -395,16 +390,23 @@ class BookingController extends Controller
 		$booking_status_id = $request->input('booking_status_id');
 		$is_notify = $request->input('isnotify');
 		
-		if ($is_notify == 'true' || $is_notify == 'on') {
-			$isnotify = 1;
-		}else {
-			$isnotify = 0;
-		}
+		$isnotify = ($is_notify === 'true' || $is_notify === 'on') ? 1 : 0;
+
+		$processed_by = auth()->id();
 
 		$data = array(
 			'payment_status_id' => $payment_status_id,
-			'booking_status_id' => $booking_status_id
-		);	
+			'booking_status_id' => $booking_status_id,
+			'processed_by' => $processed_by,
+		);
+
+		if ($payment_status_id == 1) {
+			$booking = Booking_manage::find($id);
+			if ($booking) {
+				$data['payment_date'] = now();
+				$data['paid_amount'] = $booking->total_amount;
+			}
+		}
 		
 		$response = Booking_manage::where('id', $id)->update($data);
 		if($response){
@@ -566,7 +568,7 @@ class BookingController extends Controller
 			$new_account = 0;
 		}
 
-		$payment_method_id = 1;
+		$payment_method_id = $request->input('payment_method_id', 1);
 
 		if($new_account == 1){
 			
@@ -578,7 +580,7 @@ class BookingController extends Controller
 				'checkin_date' => 'required',
 				'checkout_date' => 'required',
 				'room' => 'required',
-				'email' => 'required|email|unique:users',
+				'email' => 'nullable|email|unique:users',
 				'password' => 'required|confirmed',
 			]);
 
@@ -609,7 +611,7 @@ class BookingController extends Controller
 			$validator = Validator::make($request->all(),[
 				'roomtype' => 'required',
 				'name' => 'required',
-				'email' => 'required',
+				'email' => 'nullable',
 				'phone' => 'required',
 				'country' => 'required',
 				'checkin_date' => 'required',
@@ -685,7 +687,8 @@ class BookingController extends Controller
 			'zip_code' => $request->input('zip_code'),
 			'city' => $request->input('city'),
 			'address' => $request->input('address'),
-			'comments' => $request->input('comments')
+			'comments' => $request->input('comments'),
+			'processed_by' => auth()->id()
 		);
 
 		$booking_id = Booking_manage::create($data)->id;
@@ -712,8 +715,10 @@ class BookingController extends Controller
 		$res = array();
 
 		$roomtype_id = $request->input('roomtype_id');
+		$in_date = $request->input('in_date');
+		$out_date = $request->input('out_date');
 		
-		$total_room = Room_manage::where('roomtype_id', '=', $roomtype_id)->where('book_status', '=', 2)->where('is_publish', '=', 1)->count();
+		$total_room = getAvailableRooms($roomtype_id, $in_date, $out_date)->count();
 
 		$res['total_room'] = $total_room;
 		

@@ -283,6 +283,15 @@
 						@if ($mdata->comments != '')
 						<p><strong>{{ __('Note') }}</strong>: {{ $mdata->comments }}</p>
 						@endif
+						
+						@if ($mdata->payment_proof != '')
+						<p>
+							<strong>{{ __('Payment Proof') }}:</strong><br>
+							<a href="{{ asset('public/media/'.$mdata->payment_proof) }}" target="_blank">
+								<img src="{{ asset('public/media/'.$mdata->payment_proof) }}" alt="Payment Proof" style="max-width:200px;max-height:200px;border:1px solid #ddd;padding:5px;">
+							</a>
+						</p>
+						@endif
 					</div>
 				</div>
 			</div>

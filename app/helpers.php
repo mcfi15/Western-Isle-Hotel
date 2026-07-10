@@ -27,6 +27,32 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
+function getAvailableRooms($roomtype_id, $in_date = null, $out_date = null, $exclude_booking_id = null)
+{
+    $query = DB::table('room_manages as rm')
+        ->where('rm.roomtype_id', $roomtype_id)
+        ->where('rm.is_publish', 1)
+        ->whereNotIn('rm.id', function ($q) use ($in_date, $out_date, $exclude_booking_id) {
+            $q->select('ra.room_id')
+              ->from('room_assigns as ra')
+              ->join('booking_manages as bm', 'ra.booking_id', '=', 'bm.id')
+              ->where(function ($q2) {
+                  $q2->where('bm.booking_status_id', 2)
+                     ->orWhere('bm.booking_status_id', 1);
+              })
+              ->where(function ($q2) use ($in_date, $out_date) {
+                  if ($in_date && $out_date) {
+                      $q2->where('bm.in_date', '<', $out_date)
+                         ->where('bm.out_date', '>', $in_date);
+                  }
+              });
+            if ($exclude_booking_id) {
+                $q->where('ra.booking_id', '!=', $exclude_booking_id);
+            }
+        });
+    return $query;
+}
+
 //Page Variation
 function PageVariation(){
 

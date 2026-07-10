@@ -277,13 +277,11 @@ class BookingController extends Controller
 			$idsArray[] = $row->room_id;
 		}
 
-		$room_list = Room_manage::where('roomtype_id', '=', $roomtype_id)
-			->where('book_status', '=', 2)
-			->where('is_publish', '=', 1)
+		$room_list = getAvailableRooms($roomtype_id, $mdata->in_date, $mdata->out_date, $id)
 			->whereNotIn('id', $idsArray)
 			->paginate(20);
 		
-		$total_room = Room_manage::where('roomtype_id', '=', $roomtype_id)->where('book_status', '=', 2)->where('is_publish', '=', 1)->count();
+		$total_room = getAvailableRooms($roomtype_id, $mdata->in_date, $mdata->out_date, $id)->count();
 		
         return view('backend.booking', compact('page_type', 'payment_status_list', 'booking_status_list', 'mdata', 'room_list', 'total_room'));		
 	}
@@ -301,25 +299,17 @@ class BookingController extends Controller
 			$idsArray[] = $row->room_id;
 		}
 
+		$bookingData = Booking_manage::find($booking_id);
+		$in_date = $bookingData ? $bookingData->in_date : null;
+		$out_date = $bookingData ? $bookingData->out_date : null;
+
 		if($request->ajax()){
 
-			if($search != ''){
-
-				$room_list = Room_manage::where('roomtype_id', $roomtype_id)
-					->where(function ($query) use ($search){
-						$query->where('room_no', 'like', '%'.$search.'%');
-					})
-					->where('book_status', '=', 2)
-					->where('is_publish', '=', 1)
-					->whereNotIn('id', $idsArray)
-					->paginate(20);
-			}else{
-				$room_list = Room_manage::where('roomtype_id', $roomtype_id)
-					->where('book_status', '=', 2)
-					->where('is_publish', '=', 1)
-					->whereNotIn('id', $idsArray)
-					->paginate(20);
-			}
+			$room_list = getAvailableRooms($roomtype_id, $in_date, $out_date, $booking_id)
+				->where(function ($q) use ($search) { if ($search) $q->where('rm.room_no', 'like', '%'.$search.'%'); })
+				->whereNotIn('rm.id', $idsArray)
+				->select('rm.*')
+				->paginate(20);
 
 			return view('backend.partials.room_list_for_assign_room', compact('room_list'))->render();
 		}
@@ -544,7 +534,13 @@ public function updateBookingStatus(Request $request)
 				$discount = $old_price*$total_room*$total_days;
 				$total_discount = $discount - $subtotal;
 			}
-		}		
+		}
+
+		// Preserve manual discount if already set
+		$existingBooking = Booking_manage::find($id);
+		if ($existingBooking && $existingBooking->discount > 0 && $total_discount == 0) {
+			$total_discount = $existingBooking->discount;
+		}
 		
 		$tax_rate = $gtax['percentage'];
 
@@ -579,6 +575,45 @@ public function updateBookingStatus(Request $request)
 		return response()->json($res);
 	}
 	
+	//Update Discount
+	public function updateDiscount(Request $request)
+	{
+		$res = array();
+		$id = $request->input('booking_id');
+		$manual_discount = floatval($request->input('manual_discount', 0));
+
+		$booking = Booking_manage::find($id);
+		if (!$booking) {
+			$res['msgType'] = 'error';
+			$res['msg'] = __('Booking not found');
+			return response()->json($res);
+		}
+
+		$subtotal = $booking->subtotal;
+		$tax = $booking->tax;
+		$total_amount = ($subtotal + $tax) - $manual_discount;
+		if ($total_amount < 0) $total_amount = 0;
+		$due_amount = $total_amount - $booking->paid_amount;
+		if ($due_amount < 0) $due_amount = 0;
+
+		$data = array(
+			'discount' => $manual_discount,
+			'total_amount' => $total_amount,
+			'due_amount' => $due_amount
+		);
+
+		$response = Booking_manage::where('id', $id)->update($data);
+		if ($response) {
+			$res['msgType'] = 'success';
+			$res['msg'] = __('Discount Updated Successfully');
+		} else {
+			$res['msgType'] = 'error';
+			$res['msg'] = __('Data update failed');
+		}
+
+		return response()->json($res);
+	}
+
 	//Change Booking Status
 	public function ChangeBookingStatus($booking_id, $booking_status_id) {
 		
@@ -641,7 +676,7 @@ public function updateBookingStatus(Request $request)
 			$new_account = 0;
 		}
 
-		$payment_method_id = 1;
+		$payment_method_id = $request->input('payment_method_id', 1);
 
 		if($new_account == 1){
 			
@@ -653,7 +688,7 @@ public function updateBookingStatus(Request $request)
 				'checkin_date' => 'required',
 				'checkout_date' => 'required',
 				'room' => 'required',
-				'email' => 'required|email|unique:users',
+				'email' => 'nullable|email|unique:users',
 				'password' => 'required|confirmed',
 			]);
 
@@ -684,7 +719,7 @@ public function updateBookingStatus(Request $request)
 			$validator = Validator::make($request->all(),[
 				'roomtype' => 'required',
 				'name' => 'required',
-				'email' => 'required',
+				'email' => 'nullable',
 				'phone' => 'required',
 				'country' => 'required',
 				'checkin_date' => 'required',
@@ -760,7 +795,8 @@ public function updateBookingStatus(Request $request)
 			'zip_code' => $request->input('zip_code'),
 			'city' => $request->input('city'),
 			'address' => $request->input('address'),
-			'comments' => $request->input('comments')
+			'comments' => $request->input('comments'),
+			'processed_by' => auth()->id()
 		);
 
 		$booking_id = Booking_manage::create($data)->id;
@@ -787,8 +823,10 @@ public function updateBookingStatus(Request $request)
 		$res = array();
 
 		$roomtype_id = $request->input('roomtype_id');
+		$in_date = $request->input('in_date');
+		$out_date = $request->input('out_date');
 		
-		$total_room = Room_manage::where('roomtype_id', '=', $roomtype_id)->where('book_status', '=', 2)->where('is_publish', '=', 1)->count();
+		$total_room = getAvailableRooms($roomtype_id, $in_date, $out_date)->count();
 
 		$res['total_room'] = $total_room;
 		

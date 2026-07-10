@@ -4,13 +4,14 @@
 			<tr>
 				<th class="checkboxlist text-center" style="width:5%">{{ __('SL') }}</th>
 				<th class="text-left" style="width:10%">{{ __('Room Number') }}</th>
-				<th class="text-left" style="width:18%">{{ __('Room Type') }}</th>
+				<th class="text-left" style="width:15%">{{ __('Room Type') }}</th>
+				<th class="text-left" style="width:10%">{{ __('Price/Night') }}</th>
 				<th class="text-center" style="width:10%">{{ __('Booking Status') }}</th>
 				<th class="text-left" style="width:15%">{{ __('In / Out Date') }}</th>
 				<th class="text-left" style="width:10%">{{ __('Booking No') }}</th>
 				<th class="text-left" style="width:12%">{{ __('Customer') }}</th>
-				<th class="text-left" style="width:10%">{{ __('Phone') }}</th>
-				<th class="text-center" style="width:10%">{{ __('Status') }}</th>
+				<th class="text-left" style="width:8%">{{ __('Phone') }}</th>
+				<th class="text-center" style="width:5%">{{ __('Status') }}</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -21,6 +22,14 @@
 				<td class="text-center">{{ $i++ }}</td> 
 				<td class="text-left">{{ $row->room_no }}</td>
 				<td class="text-left">{{ $row->title }}</td>
+				<td class="text-left">
+					@if($row->is_discount == 1 && $row->old_price != '')
+						<span style="text-decoration:line-through;color:#ee0101;">{{ NumberFormat($row->old_price) }}</span>
+						{{ NumberFormat($row->price) }}
+					@else
+						{{ NumberFormat($row->price) }}
+					@endif
+				</td>
 				@if ($row->book_status == 1)
 				<td class="text-center"><span class="disable_btn">{{ __('Booked') }}</span></td>
 				@else
@@ -59,7 +68,7 @@
 			@endforeach
 			@else
 			<tr>
-				<td class="text-center" colspan="9">{{ __('No data available') }}</td>
+				<td class="text-center" colspan="10">{{ __('No data available') }}</td>
 			</tr>
 			@endif
 		</tbody>
